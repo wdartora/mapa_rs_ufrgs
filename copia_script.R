@@ -10,6 +10,7 @@ library(rgdal)
 library(dplyr)
 library(RColorBrewer) 
 
+#testando comentário
 # Importando shapefile (mapa do Brasil)----
 
 shp <- readOGR("C:\\Users\\00192923\\Desktop\\shape_file", stringsAsFactors=FALSE, encoding="UTF-8")
