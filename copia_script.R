@@ -1,3 +1,5 @@
+## Mapa do Rio Grande do Sul por município
+
 # Carregando os pacotes----
 
 library(maptools)     
@@ -7,55 +9,54 @@ library(tmap)
 library(leaflet)        
 library(dplyr)
 library(rgdal)
-library(dplyr)
 library(RColorBrewer) 
 
-#testando comentário
 # Importando shapefile (mapa do Brasil)----
 
 shp <- readOGR("C:\\Users\\00192923\\Desktop\\shape_file", stringsAsFactors=FALSE, encoding="UTF-8")
 
-class(shp$CD_GEOCMU)
-
+#Criando o dataframe com uma coluna com os códigos geográficos dos municípios:
 
 dados$CD_GEOCMU <- as.data.frame(shp$CD_GEOCMU)
 
+# Fazendo um vetor aleatório para servir de dados de exemplo do mapa:
+
 vetor <- seq(0.23, 4.17, 0.34)
+
+# Criando a coluna de dados no data.frame de dados
 
 dados$DADOS <- sample(x = vetor, size = 499, replace = TRUE)
 
+# Tirando a cor do Guaíba
+
 dados$DADOS <- replace(dados$DADOS, dados$`shp$NM_MUNICIP`=="LAGOA DOS PATOS", NA)
 
-# Importando cÃ³digos do IBGE e adicionando ao dataset----
+# Unindo dataset e shapefile ----
 
-# ibge <- read.csv("D:/Ewerton/Mapas R/Dados\\estadosibge.csv", header=T,sep=",")
-# 
-# pg <- merge(pg,ibge, by.x = "Location", by.y = "Unidade.da.Federação")
+dados_mapa <- merge(shp, dados, by.x = "NM_MUNICIP", by.y = "shp$NM_MUNICIP")
 
-# Fazendo a junÃ§Ã£o entre o dataset e o shapefile----
-
-dados_mapa <- merge(shp,dados, by.x = "NM_MUNICIP", by.y = "shp$NM_MUNICIP")
-
-#Tratamento e transformaÃ§Ã£o dos dados----
-
+#Tratamento e transformação dos dados----
+## Incluindo as coordenadas geográficas:
 proj4string(dados_mapa) <- CRS("+proj=longlat +datum=WGS84 +no_defs") #adicionando coordenadas geogrÃ¡ficas
+
+## Mudando a codificação da variável de nome do município
 
 Encoding(dados_mapa$NM_MUNICIP) <- "UTF-8"
 
-#brasileiropg$Score[is.na(brasileiropg$Score)] <- 0 #substituindo NA por 0
+# Gerando o mapa interativo----
 
-
-# Gerando o mapa----
-
-
-?colorNumeric
+## Gerando as cores que usaremos na representação dos dados:
 
 pal <- colorNumeric(palette = "Spectral", domain = dados_mapa$DADOS, reverse = TRUE) #cores do mapa
+
+## Gerando o pop up que aparece com o clique:
 
 municipio_popup <- paste0("<strong>Municipio: </strong>", 
                           dados_mapa$NM_MUNICIP, 
                           "<br><strong>% prevalência de SCA: </strong>", 
                           dados_mapa$DADOS)
+
+## Plotando o mapa interativo
 
 mapa_sca <- leaflet(data = dados_mapa) %>%
   addProviderTiles("CartoDB.Positron") %>%
@@ -68,7 +69,10 @@ mapa_sca <- leaflet(data = dados_mapa) %>%
             title = "Incidência de SCA",
             opacity = 1)
 
+## Imprimindo o mapa:
+mapa_sca
 
+## Exportando o mapa:
 htmlwidgets::saveWidget(mapa_sca, "C:\\Users\\00192923\\Desktop\\shape_file\\Projeto_UFRGS\\Projeto_William.html", 
                         selfcontained = TRUE)
 
